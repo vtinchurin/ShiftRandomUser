@@ -26,6 +26,9 @@ interface UserDao {
     @Query("SELECT * FROM users")
     fun loadUsers(): Flow<List<UserAndImage>>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM users) AS has_rows")
+    suspend fun hasUsers(): Boolean
+
     @Transaction
     suspend fun insertUsersWithImages(users: List<UserCache>, images: List<ImageCache>) {
         val imageIds = insertImages(*images.toTypedArray())
