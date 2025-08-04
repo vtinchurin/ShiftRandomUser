@@ -12,6 +12,7 @@ import ru.vtinchurin.shiftrandomuser.utils.runOperationCatching
 interface UserListLocalDataSource {
     fun getUsers(): Flow<Result<List<UserAndImage>, Throwable>>
     suspend fun saveUsers(users: List<UserCache>, images: List<ImageCache>)
+    suspend fun hasUsers(): Boolean
 
     class Base(
         private val userDao: UserDao,
@@ -22,6 +23,10 @@ interface UserListLocalDataSource {
 
         override suspend fun saveUsers(users: List<UserCache>, images: List<ImageCache>) {
             userDao.insertUsersWithImages(users, images)
+        }
+
+        override suspend fun hasUsers(): Boolean {
+            return userDao.hasUsers()
         }
     }
 }

@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import ru.vtinchurin.shiftrandomuser.core.local.entity.toUser
 import ru.vtinchurin.shiftrandomuser.core.network.UserRemoteDataSource
@@ -40,13 +41,14 @@ class UserListRepositoryImpl(
     }.mapSuccess { Unit }
 
     override fun getUsers(): Flow<Result<List<User>, String>> {
-        return localDataSource.getUsers().map { result ->
-            result
-                .mapSuccess { usersDao ->
-                    usersDao.map { it.toUser() }
-                }.mapError { throwable ->
-                    throwable.message ?: "Internal error"
-                }
+        return localDataSource.getUsers().onStart {
+            if (!localDataSource.hasUsers()) refreshUsers()
+        }.map { result ->
+            result.mapSuccess { usersDao ->
+                usersDao.map { it.toUser() }
+            }.mapError { throwable ->
+                throwable.message ?: "Internal error"
+            }
         }
     }
 }
